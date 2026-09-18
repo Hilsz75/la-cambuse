@@ -578,9 +578,7 @@ function renderHome() {
 
   const hero = state.auth ? "" : `
     <section style="position:relative; min-height:560px; display:flex; align-items:flex-end; padding:80px 28px; overflow:hidden; background:#2C2A26">
-      <div style="position:absolute; inset:0; background-image:repeating-linear-gradient(135deg, #3A3832 0 14px, #2F2D28 14px 28px); display:grid; place-items:end end; padding:20px 24px">
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8C877D; letter-spacing:0.08em; text-align:right">PHOTO LIFESTYLE — jeunes jouant aux cartes en extérieur</span>
-      </div>
+      <div style="position:absolute; inset:0; background-image:url('assets/images/hero-accueil.jpg'); background-size:cover; background-position:center"></div>
       <div style="position:absolute; inset:0; background:linear-gradient(90deg, rgba(20,19,16,0.9) 0%, rgba(20,19,16,0.6) 58%, rgba(20,19,16,0.25) 100%)"></div>
       <div style="position:relative; max-width:1180px; width:100%; margin:0 auto">
         <h1 style="color:#fff; font-size:clamp(34px,4.2vw,60px); line-height:1.05; font-weight:700; max-width:830px">La Cambuse : une plateforme qui nourrit le travail éducatif et partage les ressources des professionnels</h1>
