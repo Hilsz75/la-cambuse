@@ -154,6 +154,7 @@ function currentProfile() {
 const state = {
   page: "home", auth: false, currentUser: null, loginError: false, family: 0, sub: null, tab: "ateliers", openTool: null,
   pendingFamily: null, loginFrom: null, menuOpen: false, alertsOpen: false, searchOpen: false, query: "",
+  viewingDoc: null,
   likes: THREADS.map((t) => t.likes)
 };
 
@@ -241,6 +242,8 @@ A.menuProfil = () => { state.menuOpen = false; A.go("profil"); };
 A.logout = () => { state.menuOpen = false; state.auth = false; state.currentUser = null; A.go("home"); };
 
 A.setTab = (key) => { state.tab = key; render(); };
+A.viewDoc = (url, title) => { state.viewingDoc = { url, title }; render(); };
+A.closeDocViewer = () => { state.viewingDoc = null; render(); };
 A.likeComment = (i) => { state.likes[i] = state.likes[i] + 1; render(); };
 A.pickSuggestion = (label) => {
   state.query = label;
@@ -941,9 +944,14 @@ function renderBoite() {
             <div style="font-size:12px; color:#A09A90; margin-top:3px">${esc(doc.size)}</div>
           </div>
         </div>
-        ${doc.url
-          ? `<a href="${esc(doc.url)}" download title="Télécharger" class="doc-download" style="flex:none; width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px; text-decoration:none">↓</a>`
-          : `<div title="Télécharger" class="doc-download" style="flex:none; width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px">↓</div>`}
+        <div style="flex:none; display:flex; align-items:center; gap:8px">
+          ${doc.url
+            ? `<span onclick="A.viewDoc(${jsStr(doc.url)}, ${jsStr(doc.title)})" title="Voir" style="width:36px; height:36px; border-radius:50%; background:#F2EFE9; color:#191713; display:grid; place-items:center; font-size:14px; font-weight:700; cursor:pointer">◎</span>`
+            : ""}
+          ${doc.url
+            ? `<a href="${esc(doc.url)}" download title="Télécharger" class="doc-download" style="width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px; text-decoration:none">↓</a>`
+            : `<div title="Télécharger" class="doc-download" style="width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px">↓</div>`}
+        </div>
       </div>`).join("")}
     </div>`;
   }
@@ -1045,6 +1053,23 @@ function renderBoite() {
         </div>
       </div>
     </section>
+  </div>
+  ${state.viewingDoc ? docViewerModalHTML() : ""}`;
+}
+
+function docViewerModalHTML() {
+  const { url, title } = state.viewingDoc;
+  return `<div onclick="A.closeDocViewer()" style="position:fixed; inset:0; z-index:100; background:rgba(25,23,19,0.75); display:flex; align-items:center; justify-content:center; padding:24px; animation:cambuse-in 0.15s ease">
+    <div onclick="event.stopPropagation()" style="background:#fff; border-radius:12px; width:100%; max-width:900px; height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 30px 70px rgba(0,0,0,0.35)">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 20px; border-bottom:1px solid #ECE7DE">
+        <span style="font-weight:700; font-size:15px; overflow-wrap:anywhere">${esc(title)}</span>
+        <div style="display:flex; align-items:center; gap:18px; flex:none">
+          <a href="${esc(url)}" download style="font-size:13px; font-weight:700; color:var(--accent); text-decoration:none">Télécharger</a>
+          <span onclick="A.closeDocViewer()" title="Fermer" style="cursor:pointer; font-size:22px; line-height:1; color:#8C877D">×</span>
+        </div>
+      </div>
+      <iframe src="${esc(url)}" title="${esc(title)}" style="flex:1; border:none; width:100%"></iframe>
+    </div>
   </div>`;
 }
 
