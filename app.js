@@ -52,7 +52,9 @@ const FAMILIES = [
     subs: ["Liens familiaux", "Amitiés", "Relations amoureuses", "Confiance en l'adulte", "Gestion des émotions", "Solitude", "Ruptures et séparations", "Vie affective du groupe"] }
 ];
 
-const DOCS = {
+/* Contenu générique affiché par défaut pour tout sous-thème qui n'a pas encore
+   de vrais documents renseignés dans SUBTHEME_DOCS ci-dessous. */
+const DEFAULT_DOCS = {
   ateliers: {
     title: "Ateliers",
     intro: "Retrouvez ici des ateliers pratiques conçus pour aider les jeunes à mieux comprendre et intégrer ce besoin dans leur quotidien. Ces supports offrent des idées d'activités simples, ludiques et directement utilisables dans l'accompagnement.",
@@ -81,6 +83,27 @@ const DOCS = {
     title: "Partenaires",
     intro: "Retrouvez ici les contacts de professionnels et de structures partenaires. Ils constituent un réseau de soutien et de collaboration pour accompagner vos actions auprès des jeunes." }
 };
+
+/* Vrais documents, rattachés à un sous-thème précis (par son nom exact dans FAMILIES).
+   Seuls les onglets renseignés ici remplacent le contenu générique ci-dessus ;
+   les autres onglets du même sous-thème retombent sur DEFAULT_DOCS. */
+const SUBTHEME_DOCS = {
+  "Hygiène bucco-dentaire": {
+    ateliers: {
+      title: "Ateliers",
+      intro: "Retrouvez ici des ateliers pratiques conçus pour aider les jeunes à mieux comprendre et intégrer ce besoin dans leur quotidien. Ces supports offrent des idées d'activités simples, ludiques et directement utilisables dans l'accompagnement.",
+      items: [
+        { title: "Atelier pédagogique — Hygiène bucco-dentaire (Méthode Cap).pdf", size: "19 Ko", url: "assets/docs/Atelier_Hygiene_Bucco-Dentaire_Methode_Cap.pdf" }
+      ]
+    }
+  }
+};
+
+function docsFor(sub, tabKey) {
+  const override = SUBTHEME_DOCS[sub];
+  if (override && override[tabKey]) return override[tabKey];
+  return DEFAULT_DOCS[tabKey];
+}
 
 const PARTNERS = [
   { city: "Meudon", dept: "Hauts-de-Seine", spec: "Dentiste", contact: "Dr. DUPONT", addr: "78 rue Diderot", cityLine: "Meudon", tel: "12 34 56 78 91" },
@@ -245,11 +268,22 @@ function computeSearchResults() {
             action: `state.family=${fi}; A.closeSearch(); A.openSub(${jsStr(n)})` });
       });
     });
-    Object.keys(DOCS).forEach((k) => {
-      (DOCS[k].items || []).forEach((it) => {
+    Object.keys(DEFAULT_DOCS).forEach((k) => {
+      (DEFAULT_DOCS[k].items || []).forEach((it) => {
         if (norm(it.title).indexOf(q) >= 0)
-          results.push({ label: it.title, context: DOCS[k].title + " · " + (state.sub ?? FAMILIES[state.family].subs[0]), dot: dot("#C4BEB3"),
+          results.push({ label: it.title, context: DEFAULT_DOCS[k].title + " · " + (state.sub ?? FAMILIES[state.family].subs[0]), dot: dot("#C4BEB3"),
             action: `A.closeSearch(); state.tab=${jsStr(k)}; A.go('boite')` });
+      });
+    });
+    Object.keys(SUBTHEME_DOCS).forEach((subName) => {
+      const famIndex = FAMILIES.findIndex((f) => f.subs.includes(subName));
+      if (famIndex < 0) return;
+      Object.keys(SUBTHEME_DOCS[subName]).forEach((k) => {
+        (SUBTHEME_DOCS[subName][k].items || []).forEach((it) => {
+          if (norm(it.title).indexOf(q) >= 0)
+            results.push({ label: it.title, context: SUBTHEME_DOCS[subName][k].title + " · " + subName, dot: dot("#C4BEB3"),
+              action: `state.family=${famIndex}; state.sub=${jsStr(subName)}; A.closeSearch(); state.tab=${jsStr(k)}; A.go('boite')` });
+        });
       });
     });
     PARTNERS.forEach((p) => {
@@ -866,7 +900,7 @@ function renderBoite() {
   const fam = FAMILIES[state.family];
   const sub = state.sub ?? fam.subs[0];
   const tint = `color-mix(in srgb, ${fam.color} 30%, #FFFFFF)`;
-  const bank = DOCS[state.tab];
+  const bank = docsFor(sub, state.tab);
   const subIntro = "Ressources, repères et partenaires mobilisables autour de « " + sub.toLowerCase() + " ». Cet apprentissage du quotidien est un repère de base pour la santé globale et l'autonomie des jeunes accompagnés.";
 
   const tabs = [
@@ -907,7 +941,9 @@ function renderBoite() {
             <div style="font-size:12px; color:#A09A90; margin-top:3px">${esc(doc.size)}</div>
           </div>
         </div>
-        <div title="Télécharger" class="doc-download" style="flex:none; width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px">↓</div>
+        ${doc.url
+          ? `<a href="${esc(doc.url)}" download title="Télécharger" class="doc-download" style="flex:none; width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px; text-decoration:none">↓</a>`
+          : `<div title="Télécharger" class="doc-download" style="flex:none; width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:15px">↓</div>`}
       </div>`).join("")}
     </div>`;
   }
