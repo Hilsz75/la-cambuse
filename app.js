@@ -114,16 +114,22 @@ const TOOLS = [
   { name: "Cahier de sortie « Le Gouvernail »" }
 ];
 
-const PROFILE = {
-  firstName: "Camille", lastName: "Durand", initials: "C",
-  role: "Éducatrice spécialisée", institution: "Association CidadeDeDeus",
-  email: "camille.durand@association.fr", phone: "06 12 34 56 78"
+/* Accès simulé côté client : suffisant pour filtrer les visiteurs occasionnels,
+   PAS une vraie sécurité — ces identifiants sont visibles par quiconque lit ce fichier. */
+const ACCOUNTS = {
+  "C.Messas": { password: "Cambusepra1709", firstName: "C.", lastName: "Messas", initials: "C",
+    role: "Éducateur spécialisé", institution: "Association CidadeDeDeus", email: "c.messas@association.fr", phone: "—" },
+  "T.Test": { password: "Cambusepra1709", firstName: "T.", lastName: "Test", initials: "T",
+    role: "Compte de test", institution: "Association CidadeDeDeus", email: "t.test@association.fr", phone: "—" }
 };
+function currentProfile() {
+  return ACCOUNTS[state.currentUser] || { firstName: "", lastName: "", initials: "?", role: "", institution: "", email: "", phone: "" };
+}
 
 /* ---------------------------------------------------------------------- */
 
 const state = {
-  page: "home", auth: false, family: 0, sub: null, tab: "ateliers", openTool: null,
+  page: "home", auth: false, currentUser: null, loginError: false, family: 0, sub: null, tab: "ateliers", openTool: null,
   pendingFamily: null, loginFrom: null, menuOpen: false, alertsOpen: false, searchOpen: false, query: "",
   likes: THREADS.map((t) => t.likes)
 };
@@ -154,6 +160,16 @@ A.requireFamily = (i) => {
 };
 
 A.doLogin = () => {
+  const user = (document.getElementById("loginUser")?.value || "").trim();
+  const pass = document.getElementById("loginPass")?.value || "";
+  const account = ACCOUNTS[user];
+  if (!account || account.password !== pass) {
+    state.loginError = true;
+    render();
+    return;
+  }
+  state.loginError = false;
+  state.currentUser = user;
   if (state.loginFrom === "family") { state.auth = true; state.page = "zoom"; state.family = state.pendingFamily ?? 0; state.loginFrom = null; }
   else { state.auth = true; state.page = "home"; state.loginFrom = null; }
   render(); window.scrollTo(0, 0);
@@ -199,7 +215,7 @@ A.menuMethode = () => { state.menuOpen = false; state.sub = null; A.go("methode"
 A.menuCommunaute = () => { state.menuOpen = false; A.go("communaute"); };
 A.menuContact = () => { state.menuOpen = false; A.go("contact"); };
 A.menuProfil = () => { state.menuOpen = false; A.go("profil"); };
-A.logout = () => { state.menuOpen = false; state.auth = false; A.go("home"); };
+A.logout = () => { state.menuOpen = false; state.auth = false; state.currentUser = null; A.go("home"); };
 
 A.setTab = (key) => { state.tab = key; render(); };
 A.likeComment = (i) => { state.likes[i] = state.likes[i] + 1; render(); };
@@ -401,8 +417,8 @@ function renderProfileDropdown() {
   if (!state.menuOpen) return "";
   return `<div style="position:absolute; top:42px; right:0; z-index:80; width:230px; background:#fff; border:1px solid #ECE7DE; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.14); overflow:hidden; animation:cambuse-in 0.18s ease">
     <div style="padding:16px 18px 14px; border-bottom:1px solid #F2EFE9">
-      <div style="font-weight:700; font-size:15px">${esc(PROFILE.firstName + " " + PROFILE.lastName)}</div>
-      <div style="font-size:12px; color:#8C877D; margin-top:3px">${esc(PROFILE.email)}</div>
+      <div style="font-weight:700; font-size:15px">${esc(currentProfile().firstName + " " + currentProfile().lastName)}</div>
+      <div style="font-size:12px; color:#8C877D; margin-top:3px">${esc(currentProfile().email)}</div>
     </div>
     <div style="display:flex; flex-direction:column; padding:8px 0">
       <span class="dropdown-item" onclick="A.menuMethode()" style="padding:12px 18px; font-size:14px; font-weight:600; cursor:pointer">La méthode</span>
@@ -458,7 +474,7 @@ function renderSubBar() {
 
 function renderAvatarBlock() {
   return `<div style="position:relative">
-    <div onclick="A.toggleMenu()" style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-weight:700; font-size:14px; cursor:pointer; box-shadow:${state.menuOpen ? "0 0 0 3px rgba(221,11,62,0.22)" : "none"}">${esc(PROFILE.initials)}</div>
+    <div onclick="A.toggleMenu()" style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-weight:700; font-size:14px; cursor:pointer; box-shadow:${state.menuOpen ? "0 0 0 3px rgba(221,11,62,0.22)" : "none"}">${esc(currentProfile().initials)}</div>
     ${renderProfileDropdown()}
   </div>`;
 }
@@ -703,9 +719,10 @@ function renderLogin() {
         <h1 style="font-size:clamp(28px,3vw,40px); line-height:1.1">Bienvenue sur La Cambuse</h1>
         <p style="margin-top:14px; font-size:16px; line-height:1.6; color:#4A463E">Un espace collaboratif dédié aux professionnels pour accompagner les jeunes à travers leurs besoins fondamentaux.</p>
         ${hint ? `<p style="margin-top:14px; font-size:14px; font-weight:700; color:var(--accent)">${hint}</p>` : ""}
+        ${state.loginError ? `<p style="margin-top:14px; font-size:14px; font-weight:700; color:var(--accent)">Identifiant ou mot de passe incorrect.</p>` : ""}
         <div style="margin-top:26px; display:flex; flex-direction:column; gap:12px">
-          <input type="email" placeholder="Email professionnel" style="width:100%; padding:15px 16px; border:1px solid #ECE7DE; background:#F5F2EC; border-radius:8px; outline:none" />
-          <input type="password" placeholder="Mot de passe" style="width:100%; padding:15px 16px; border:1px solid #ECE7DE; background:#F5F2EC; border-radius:8px; outline:none" />
+          <input id="loginUser" type="text" placeholder="Identifiant" style="width:100%; padding:15px 16px; border:1px solid #ECE7DE; background:#F5F2EC; border-radius:8px; outline:none" />
+          <input id="loginPass" type="password" placeholder="Mot de passe" style="width:100%; padding:15px 16px; border:1px solid #ECE7DE; background:#F5F2EC; border-radius:8px; outline:none" />
           <button onclick="A.doLogin()" class="btn-accent" style="margin-top:6px; padding:16px; border:none; border-radius:8px">Se connecter</button>
         </div>
         <div style="margin-top:18px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:14px">
@@ -941,7 +958,7 @@ function renderBoite() {
         <h2 style="text-align:center; font-size:clamp(26px,2.6vw,36px); color:var(--accent)">Partage d'expériences</h2>
         <p style="margin:14px auto 0; max-width:760px; text-align:center; font-size:15px; line-height:1.6; color:#4A463E">Avez-vous des conseils, des expériences passées ou des recommandations à partager ? Cet espace vivant est dédié à tous les professionnels pour échanger des idées et proposer des pistes qui enrichissent notre manière d'accompagner les jeunes.</p>
         <div style="margin-top:36px; display:flex; align-items:center; gap:16px">
-          <div style="flex:none; width:44px; height:44px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-weight:700; font-size:15px; border:2px solid #fff">C</div>
+          <div style="flex:none; width:44px; height:44px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-weight:700; font-size:15px; border:2px solid #fff">${esc(currentProfile().initials)}</div>
           <div style="flex:1; display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #ECE7DE; border-radius:8px; padding:10px 10px 10px 18px">
             <input type="text" placeholder="Avez-vous des conseils ou des expériences à partager ?" style="flex:1; border:none; outline:none; font-size:15px; background:transparent; min-width:0" />
             <span class="btn-accent" style="padding:11px 20px; border-radius:6px; font-size:14px; white-space:nowrap">Envoyer</span>
@@ -1094,22 +1111,22 @@ function renderProfil() {
 
       <div style="margin-top:36px; display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:34px; align-items:start">
         <div style="display:flex; flex-direction:column; align-items:center; gap:16px; background:#fff; border:1px solid #ECE7DE; border-radius:24px; padding:36px 24px">
-          <div style="width:96px; height:96px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-family:'Familjen Grotesk',sans-serif; font-weight:700; font-size:36px">${esc(PROFILE.initials)}</div>
+          <div style="width:96px; height:96px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-family:'Familjen Grotesk',sans-serif; font-weight:700; font-size:36px">${esc(currentProfile().initials)}</div>
           <div style="text-align:center">
-            <div style="font-family:'Familjen Grotesk',sans-serif; font-weight:700; font-size:20px">${esc(PROFILE.firstName + " " + PROFILE.lastName)}</div>
-            <div style="margin-top:4px; font-size:14px; color:#6B665C">${esc(PROFILE.role)}</div>
+            <div style="font-family:'Familjen Grotesk',sans-serif; font-weight:700; font-size:20px">${esc(currentProfile().firstName + " " + currentProfile().lastName)}</div>
+            <div style="margin-top:4px; font-size:14px; color:#6B665C">${esc(currentProfile().role)}</div>
           </div>
           <span style="margin-top:6px; font-size:13px; font-weight:700; color:var(--accent); cursor:pointer">Changer la photo</span>
         </div>
 
         <div style="background:#fff; border:1px solid #ECE7DE; border-radius:24px; padding:34px">
           <div style="display:flex; flex-direction:column; gap:18px">
-            <label class="form-label">Prénom<input type="text" value="${esc(PROFILE.firstName)}" class="form-input" /></label>
-            <label class="form-label">Nom<input type="text" value="${esc(PROFILE.lastName)}" class="form-input" /></label>
-            <label class="form-label">Fonction<input type="text" value="${esc(PROFILE.role)}" class="form-input" /></label>
-            <label class="form-label">Structure / association<input type="text" value="${esc(PROFILE.institution)}" class="form-input" /></label>
-            <label class="form-label">Téléphone<input type="tel" value="${esc(PROFILE.phone)}" class="form-input" /></label>
-            <label class="form-label">Adresse e-mail professionnelle<input type="email" value="${esc(PROFILE.email)}" class="form-input" /></label>
+            <label class="form-label">Prénom<input type="text" value="${esc(currentProfile().firstName)}" class="form-input" /></label>
+            <label class="form-label">Nom<input type="text" value="${esc(currentProfile().lastName)}" class="form-input" /></label>
+            <label class="form-label">Fonction<input type="text" value="${esc(currentProfile().role)}" class="form-input" /></label>
+            <label class="form-label">Structure / association<input type="text" value="${esc(currentProfile().institution)}" class="form-input" /></label>
+            <label class="form-label">Téléphone<input type="tel" value="${esc(currentProfile().phone)}" class="form-input" /></label>
+            <label class="form-label">Adresse e-mail professionnelle<input type="email" value="${esc(currentProfile().email)}" class="form-input" /></label>
             <button class="btn-accent" style="padding:16px; border:none; border-radius:8px">Enregistrer les modifications</button>
           </div>
         </div>
