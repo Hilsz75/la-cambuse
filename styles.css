@@ -1,0 +1,62 @@
+:root { --accent: #DD0B3E; --accent-dark: #A50A2F; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #FFFFFF; color: #191713; font-family: 'Schibsted Grotesk', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--accent-dark); }
+h1, h2, h3, h4 { font-family: 'Familjen Grotesk', Helvetica, Arial, sans-serif; margin: 0; letter-spacing: -0.02em; text-wrap: pretty; }
+p { margin: 0; text-wrap: pretty; }
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+ul { margin: 0; }
+
+@keyframes cambuse-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes cambuse-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---- generic interactive classes (mirror the design's hover states) ---- */
+.nav-link { cursor: pointer; }
+.nav-link:hover { color: var(--accent); }
+
+.pill-cta { display: inline-flex; align-items: center; gap: 12px; padding: 16px 26px; border-radius: 999px; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; border: none; text-decoration: none; }
+.pill-cta.accent { background: var(--accent); color: #fff; }
+.pill-cta.accent:hover { background: var(--accent-dark); transform: translateY(-2px); }
+.pill-cta.ghost { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.55); color: #fff; }
+.pill-cta.ghost:hover { background: rgba(255,255,255,0.24); transform: translateY(-2px); }
+
+.btn-accent { background: var(--accent); color: #fff; border: none; cursor: pointer; font-weight: 700; }
+.btn-accent:hover { background: var(--accent-dark); }
+
+.header-cta { background: var(--accent); color: #fff; padding: 11px 18px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+.header-cta:hover { background: var(--accent-dark); }
+
+.dropdown-item:hover { background: #F7F5F0; }
+
+.benefit-card, .overview-card { transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; }
+.benefit-card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(25,23,19,0.10); border-color: #E2DBD0; }
+.overview-card:hover { transform: translateY(-5px); box-shadow: 0 18px 38px rgba(25,23,19,0.14); }
+
+.tool-step-card { transition: border-color 0.2s ease; }
+.tool-step-card:hover { border-color: var(--accent); }
+
+.doc-row { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.doc-row:hover { border-color: #191713; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(25,23,19,0.09); }
+.doc-download { cursor: pointer; }
+.doc-download:hover { background: var(--accent-dark) !important; }
+
+.sub-card, .related-card { cursor: pointer; transition: transform 0.28s ease, box-shadow 0.28s ease; }
+.sub-card:hover { transform: translateY(-6px); box-shadow: 0 22px 44px rgba(25,23,19,0.18); }
+.related-card:hover { transform: translateY(-3px); }
+
+.family-fan-card { cursor: pointer; }
+
+.footer-contact:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+.contact-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.contact-card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(25,23,19,0.10); }
+
+.form-input { width: 100%; padding: 14px 16px; border: 1px solid #ECE7DE; background: #FAF9F6; border-radius: 10px; outline: none; font-weight: 400; }
+.form-label { display: flex; flex-direction: column; gap: 7px; font-size: 13px; font-weight: 700; }
+
+@media (max-width: 720px) {
+  header nav { gap: 14px !important; font-size: 13px !important; flex-wrap: wrap; }
+  header { flex-wrap: wrap; }
+}
